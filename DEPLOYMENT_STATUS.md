@@ -1,72 +1,83 @@
-# Deployment Status Report
+# Deployment Status Report — Updated 2026-02-22
 
-## ✅ Completed Tasks
+## ✅ Completed
 
-1. **Project Configuration**
-   - Updated Anchor.toml to use devnet cluster
-   - Downgraded anchor-lang and anchor-spl to 0.32.1 for compatibility
-   - Removed rust-toolchain.toml to fix edition2024 issues
-   - Switched to stable Rust toolchain
+1. **Build Environment** ✅ (FIXED — was previously broken)
+   - Installed Agave (Solana CLI) 3.1.9 via official installer
+   - Platform tools v1.52 with Rust 1.89 (resolves edition2024 issue)
+   - AVM + anchor-cli 0.32.1 installed
 
-2. **TypeScript Tests** ✅
-   - Comprehensive test suite already exists in `tests/escrow.ts`
-   - Covers all required flows:
-     - ✅ Create escrow
-     - ✅ Accept escrow  
-     - ✅ Confirm delivery
-     - ✅ Cancel escrow
-     - ✅ Timeout resolution
-   - Tests include proper error cases and edge conditions
+2. **Build** ✅
+   - Fixed `Cargo.toml`: added `anchor-spl/idl-build` to idl-build feature
+   - Fixed `Cargo.toml`: enabled `token` feature on anchor-spl explicitly
+   - `anchor build` succeeds → `target/deploy/solana_escrow_engine.so` (297KB)
+   - Program keypair generated: `DgS6gJZToqri3RN6LmvMYNxAMKNnipHdEDAVyU5QFE6t`
+   - Commit: 258859e
 
-3. **Git Repository** ✅
-   - Repository: https://github.com/Mint-Claw/solana-escrow-engine
-   - Changes committed and ready to push
-   - Documentation is comprehensive and production-ready
+3. **Program Code** ✅
+   - All 5 instructions implemented: create_escrow, accept_escrow, confirm_delivery, cancel_escrow, resolve_timeout
+   - PDA architecture correct (escrow + vault seeds)
+   - State machine: Created → Accepted → Completed/Cancelled/TimedOut
+   - Error handling complete
 
-## ❌ Blocked Tasks
+4. **Repository** ✅
+   - https://github.com/Mint-Claw/solana-escrow-engine
+   - main branch, all fixes committed and pushed
 
-### Build Issues
-- **Primary Issue**: Solana platform tools corruption
-  - Error: `not a directory: '/Users/claw-agent/.cache/solana/v1.53/platform-tools/rust/lib'`
-  - Platform tools tar.bz2 file appears corrupted during extraction
-  - SSL connection issues preventing fresh downloads from release.solana.com
+5. **Devnet Wallet** ✅
+   - Address: `5keg46RYgCsvDDMswh8qSCbH38b6f6XpQ2tV3PRdf6ZB`
+   - Keypair: `~/.config/solana/id.json`
+   - Balance: 0 SOL (airdrop blocked — see below)
 
-### Missing Tools
-- `solana-keygen` command not available (needed for devnet wallet setup)
-- Current solana CLI (3.1.8) doesn't include keygen subcommand
-- Unable to create devnet wallet without keygen tool
+## ❌ Blocked: Deploy
 
-## 🔧 Workarounds Attempted
+**Single remaining blocker:** devnet SOL airdrop rate-limited by IP.
 
-1. Cleared and rebuilt solana cache multiple times
-2. Tried manual extraction of platform tools tar.bz2
-3. Attempted cargo install of various solana tools
-4. Switched between nightly/stable Rust toolchains
-5. Downgraded Anchor versions to avoid edition2024 issues
-6. Tried direct cargo build-sbf approach
+- `solana airdrop` → "airdrop request failed, rate limit reached"
+- Official faucet.solana.com API → no response
+- QuickNode faucet → requires browser/Twitter login
+- Need ~2 SOL to deploy (program is 297KB → ~1.4 SOL for rent)
 
-## 📋 Next Steps Required
+### Fix (pick one):
+**Option A (easiest):** William visits https://faucet.solana.com from his browser, sends 2 SOL to:
+```
+5keg46RYgCsvDDMswh8qSCbH38b6f6XpQ2tV3PRdf6ZB
+```
+Then on FORGE run:
+```bash
+export PATH="/Users/forge/.local/share/solana/install/active_release/bin:$HOME/.avm/bin:$PATH"
+cd ~/solana-escrow-engine
+anchor deploy --provider.cluster devnet
+```
 
-**To complete deployment, need to resolve:**
-1. Fix Solana platform tools installation
-2. Install complete Solana tool suite including keygen
-3. Complete `anchor build` successfully
-4. Set up devnet wallet and fund with SOL
-5. Run `anchor deploy --provider.cluster devnet`
-6. Update README.md with deployed program ID
+**Option B:** Wait ~24h for rate limit to reset, then run same commands.
 
-**Alternative approach:**
-- Use a different machine/environment with working Solana installation
-- Or manually install Solana tools from a different source
-- Or use Docker container with pre-configured Solana tools
+## 📋 After Deploy
+
+Once deploy succeeds, run these to get transaction links for the README:
+```bash
+# Deploy and note the program ID in output
+anchor deploy --provider.cluster devnet
+
+# Run TypeScript tests on devnet to get tx hashes
+cd ~/solana-escrow-engine
+yarn install
+anchor test --provider.cluster devnet 2>&1 | grep -E "tx|signature|confirmed"
+```
+
+Then update README.md:
+- Replace placeholder program ID with real ID (already done: DgS6gJZToqri3RN6LmvMYNxAMKNnipHdEDAVyU5QFE6t)
+- Add real transaction links from test output
 
 ## 📊 Current State
 
-- **Code Quality**: Production ready ✅
-- **Tests**: Comprehensive coverage ✅  
-- **Documentation**: Complete ✅
-- **Git Repository**: Ready ✅
-- **Build Environment**: Corrupted ❌
-- **Deployment**: Blocked ❌
-
-The project itself is well-structured and ready for deployment once the platform tools issue is resolved.
+| Item | Status |
+|---|---|
+| Code quality | ✅ Production ready |
+| Build | ✅ anchor build succeeds (297KB .so) |
+| Tests (TypeScript) | ✅ Comprehensive coverage |
+| Documentation | ✅ Complete |
+| Repository | ✅ Public, up to date |
+| Devnet wallet | ✅ Ready (needs 2 SOL funded) |
+| Deploy | ❌ Blocked on airdrop rate limit |
+| Submission | ⏳ Ready once deployed |

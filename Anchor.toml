@@ -10,7 +10,10 @@ skip-lint = false
 docker = false
 
 [programs.localnet]
-solana_escrow_engine = "6ChaRcWmP5YJg21Z6AL6B6zxG8vNPJfx2EZhwFJUPeKt"
+solana_escrow_engine = "DgS6gJZToqri3RN6LmvMYNxAMKNnipHdEDAVyU5QFE6t"
+
+[programs.devnet]
+solana_escrow_engine = "DgS6gJZToqri3RN6LmvMYNxAMKNnipHdEDAVyU5QFE6t"
 
 [registry]
 url = "https://api.apr.dev"
